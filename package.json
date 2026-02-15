@@ -1,0 +1,44 @@
+{
+  "name": "better-auth",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "rsbuild build",
+    "build:analyze": "ANALYZE=true rsbuild build",
+    "dev": "cross-env NODE_OPTIONS=\"--experimental-vm-modules --no-warnings\" tsx watch ./server.ts",
+    "preview": "tsx ./server-prod.ts",
+    "check": "biome check --write",
+    "format": "biome format --write",
+    "test": "rstest",
+    "test:watch": "rstest --watch"
+  },
+  "dependencies": {
+    "better-auth": "^1.4.18",
+    "dotenv": "^17.3.1",
+    "react": "^19.2.3",
+    "react-dom": "^19.2.3",
+    "react-error-boundary": "^6.1.1",
+    "react-router": "^7.13.0"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "2.3.8",
+    "@hono/node-server": "^1.19.9",
+    "@rsbuild/core": "^1.7.1",
+    "@rsbuild/plugin-react": "^1.4.2",
+    "@rstest/core": "^0.7.8",
+    "@tailwindcss/postcss": "^4.1.18",
+    "@testing-library/dom": "^10.4.1",
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^16.3.1",
+    "@types/node": "^20.11.17",
+    "@types/react": "^19.2.7",
+    "@types/react-dom": "^19.2.3",
+    "cross-env": "^10.1.0",
+    "happy-dom": "^20.0.11",
+    "hono": "^4.11.9",
+    "tailwindcss": "^4.1.18",
+    "tsx": "^4.7.1",
+    "typescript": "^5.9.3"
+  }
+}
