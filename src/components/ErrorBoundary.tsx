@@ -1,7 +1,7 @@
 import type { ErrorInfo } from 'react';
 import type { FallbackProps } from 'react-error-boundary';
 import { ErrorBoundary as ReactErrorBoundary } from 'react-error-boundary';
-import { logger } from '../utils/logger';
+import { logger } from '@/utils/logger';
 
 interface ErrorBoundaryProps {
   children: React.ReactNode;

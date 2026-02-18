@@ -1,5 +1,5 @@
-import '../App.css';
-import AuthButton from '../components/AuthButton';
+import '@/App.css';
+import AuthButton from '@/components/AuthButton';
 
 const Dash = () => {
   return (

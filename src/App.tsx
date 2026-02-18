@@ -1,6 +1,6 @@
 import './App.css';
 import { StaticRouter } from 'react-router';
-import Routes from './routes';
+import Routes from '@/routes';
 
 interface RootProps {
   req: {

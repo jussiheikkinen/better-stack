@@ -1,4 +1,4 @@
-import { authClient } from '../utils/auth-client';
+import { authClient } from '@/utils/auth-client';
 
 /**
  * Authentication adapter hook

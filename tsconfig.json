@@ -19,7 +19,15 @@
     /* type checking */
     "strict": true,
     "noUnusedLocals": true,
-    "noUnusedParameters": true
+    "noUnusedParameters": true,
+    "paths": {
+      "@/*": ["./src/*"],
+      "@/utils/*": ["./src/utils/*"],
+      "@/hooks/*": ["./src/hooks/*"],
+      "@/components/*": ["./src/components/*"],
+      "@/pages/*": ["./src/pages/*"],
+      "@/routes/*": ["./src/routes/*"]
+    }
   },
   "include": ["src"]
 }

@@ -1,5 +1,5 @@
 import { Outlet, useRoutes } from 'react-router';
-import Dash from './pages/Dash';
+import Dash from '@/pages/Dash';
 
 const Routes: React.FC = () => {
   const routes = useRoutes([
