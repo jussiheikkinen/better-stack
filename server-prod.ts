@@ -41,8 +41,6 @@ const serverRender = (c: Context) => {
 export async function preview() {
   const app = new Hono();
   app.use(...securityMiddleware());
-  // Apply security middleware to all routes
-  // app.use('*', securityMiddleware());
 
   // register API routes first
   apiRoutes(app);

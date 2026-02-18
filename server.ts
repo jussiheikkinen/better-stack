@@ -80,11 +80,8 @@ export async function startDevServer() {
   const app = new Hono();
   app.use(...securityMiddleware());
 
-  // Apply security middleware to all routes
-  // app.use('*', securityMiddleware());
-
   // Create Rsbuild DevServer instance
-  const rsbuildServer = await rsbuild.createDevServer();
+  const server = await rsbuild.createDevServer();
 
   // register routes
   apiRoutes(app);
@@ -94,14 +91,14 @@ export async function startDevServer() {
     '*',
     createMiddleware(async (c: Context, next: Next) => {
       return new Promise<void>((resolve) => {
-        rsbuildServer.middlewares(c.env.incoming, c.env.outgoing, () => {
+        server.middlewares(c.env.incoming, c.env.outgoing, () => {
           resolve(next());
         });
       });
     }),
   );
 
-  const renderHandler = serverRender(rsbuildServer);
+  const renderHandler = serverRender(server);
 
   app.get('*', async (c: Context, next: Next) => {
     try {
@@ -119,18 +116,18 @@ export async function startDevServer() {
   const httpServer = serve(
     {
       fetch: app.fetch,
-      port: rsbuildServer.port,
+      port: server.port,
     },
     () => {
-      rsbuildServer.afterListen();
+      server.afterListen();
     },
   );
 
-  rsbuildServer.connectWebSocket({ server: httpServer as unknown as Server });
+  server.connectWebSocket({ server: httpServer as unknown as Server });
 
   return {
     close: async () => {
-      await rsbuildServer.close();
+      await server.close();
       httpServer.close();
     },
   };
