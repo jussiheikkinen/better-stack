@@ -33,7 +33,7 @@ export const createServerRenderer = (
 ) => {
   return async (c: Context) => {
     const bundle = await loadBundle();
-    const pathname = new URL(c.req.url).pathname;
+    const pathname = c.req.path;
     const markup = bundle.render(pathname);
 
     let html = templateHtml.replace('<!--app-content-->', markup);
