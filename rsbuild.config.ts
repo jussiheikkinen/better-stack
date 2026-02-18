@@ -9,6 +9,9 @@ export default defineConfig({
   source: {
     define: publicVars,
   },
+  server: {
+    port: 3000,
+  },
   environments: {
     web: {
       source: {

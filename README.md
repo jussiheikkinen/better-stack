@@ -80,14 +80,6 @@ pnpm run format   # Biome format
 - **Testing**: Rstest with React Testing Library
 - **Code Quality**: Biome for linting and formatting
 
-## TODO - Larger Tasks
-
-### High Priority
-- [ ] **Error Boundaries**: Add React error boundaries for better error handling
-- [ ] **Security Headers**: Implement CSP, HSTS, and other security headers in server middleware
-- [ ] **Loading States**: Add loading and error states for authentication flows
-- [ ] **Bundle Optimization**: Implement code splitting and bundle analysis
-
 ### Medium Priority
 - [ ] **Test Coverage**: Expand test coverage for authentication flows and API routes
 - [ ] **Component Integration**: Add comprehensive SSR/CSR hydration tests

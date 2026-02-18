@@ -1,65 +1,44 @@
 import fs from 'node:fs';
-import { createRequire } from 'node:module';
-import path from 'node:path';
 import { serve } from '@hono/node-server';
 import { serveStatic } from '@hono/node-server/serve-static';
 import { type Context, Hono, type Next } from 'hono';
 import { securityMiddleware } from './src/middleware/security';
 import { apiRoutes } from './src/routes/api';
+import { createProdRenderer } from './src/utils/server-renderer';
 
-const require = createRequire(import.meta.url);
+// Production server configuration
 const port = process.env.PORT || 3000;
-
+// Load HTML template once at startup for SSR
 const templateHtml = fs.readFileSync('./template.html', 'utf-8');
-
-const serverRender = (c: Context) => {
-  const remotesPath = path.join(process.cwd(), `./dist/server/index.js`);
-
-  const importedApp = require(remotesPath);
-  const pathname = new URL(c.req.url).pathname;
-  const markup = importedApp.render(pathname);
-
-  const { entries } = JSON.parse(
-    fs.readFileSync('./dist/manifest.json', 'utf-8'),
-  );
-  const { js = [], css = [] } = entries.index.initial;
-
-  const scriptTags = js
-    .map((file: string) => `<script src="${file}" defer></script>`)
-    .join('\n');
-  const styleTags = css
-    .map((file: string) => `<link rel="stylesheet" href="${file}">`)
-    .join('\n');
-
-  const html = templateHtml
-    .replace('<!--app-head-->', `${scriptTags}\n${styleTags}`)
-    .replace('<!--app-content-->', markup);
-
-  return c.html(html);
-};
+// Create production SSR renderer (loads compiled bundles from disk)
+const serverRender = createProdRenderer(templateHtml);
 
 export async function preview() {
+  // Create Hono application instance
   const app = new Hono();
+  // Apply security headers and CSRF protection globally
   app.use(...securityMiddleware());
 
-  // register API routes first
+  // Register API routes before static assets (prevents conflicts)
   apiRoutes(app);
 
-  // 1. Static Assets (only serve actual static files)
+  // Serve static assets from dist directory (CSS, JS, images)
   app.use('/static/*', serveStatic({ root: './dist' }));
   app.use('/favicon.png', serveStatic({ root: './dist' }));
 
-  // 2. SSR Route (handle all other routes)
+  // Handle all other routes with SSR (fallback to CSR on error)
   app.get('*', async (c: Context, next: Next) => {
     try {
+      // Attempt server-side rendering
       return serverRender(c);
     } catch (err) {
       console.error('SSR render error, downgrade to CSR...\n', err);
+      // If SSR fails, let static middleware serve client-side bundle
       await next();
     }
   });
 
-  // 3. Start Server
+  // Start production server
   serve(
     {
       fetch: app.fetch,

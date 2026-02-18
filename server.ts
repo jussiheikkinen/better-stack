@@ -1,96 +1,50 @@
 import fs from 'node:fs';
 import type { Server } from 'node:http';
 import { serve } from '@hono/node-server';
-import {
-  createRsbuild,
-  loadConfig,
-  logger,
-  type RsbuildDevServer,
-} from '@rsbuild/core';
+import { createRsbuild, loadConfig, logger } from '@rsbuild/core';
 import { type Context, Hono, type Next } from 'hono';
 import { createMiddleware } from 'hono/factory';
 import { securityMiddleware } from './src/middleware/security';
 import { apiRoutes } from './src/routes/api';
+import { createDevRenderer } from './src/utils/server-renderer';
 
+// Load HTML template once at startup for SSR
 const templateHtml = fs.readFileSync('./template.html', 'utf-8');
 
-// Define what your server bundle exports
-interface ServerBundle {
-  render: (pathname: string) => string;
-}
-
-let manifest: string | undefined;
-
-const serverRender = (serverAPI: RsbuildDevServer) => async (c: Context) => {
-  const indexModule = (await serverAPI.environments.node.loadBundle(
-    'index',
-  )) as ServerBundle;
-  const pathname = new URL(c.req.url).pathname;
-  const markup = indexModule.render(pathname);
-
-  let html = templateHtml.replace('<!--app-content-->', markup);
-
-  if (manifest) {
-    try {
-      const { entries } = JSON.parse(manifest);
-      const { js = [], css = [] } = entries.index.initial;
-
-      const scriptTags = js
-        .map((file: string) => `<script src="${file}" defer></script>`)
-        .join('\n');
-      const styleTags = css
-        .map((file: string) => `<link rel="stylesheet" href="${file}">`)
-        .join('\n');
-
-      html = html.replace('<!--app-head-->', `${scriptTags}\n${styleTags}`);
-    } catch (_err) {
-      logger.warn('Failed to parse manifest, using fallback');
-      html = html.replace('<!--app-head-->', '');
-    }
-  } else {
-    html = html.replace('<!--app-head-->', '');
-  }
-
-  return c.html(html);
-};
-
 export async function startDevServer() {
+  // Load Rsbuild configuration for development
   const { content } = await loadConfig({});
+  let lastBuildTime = Date.now();
 
+  // Create Rsbuild instance with development config
   const rsbuild = await createRsbuild({
     rsbuildConfig: content,
   });
 
+  // Monitor build performance after each compilation
   rsbuild.onAfterDevCompile(async () => {
-    // update manifest info when rebuild
-    try {
-      manifest = await fs.promises.readFile('./dist/manifest.json', 'utf-8');
-    } catch (_err) {
-      logger.warn('Manifest not found, will be generated on next build');
-    }
+    const buildTime = Date.now() - lastBuildTime;
+    console.log(`✅ Build completed in ${buildTime}ms`);
+    lastBuildTime = Date.now();
   });
 
-  // Try to load initial manifest if it exists
-  try {
-    manifest = await fs.promises.readFile('./dist/manifest.json', 'utf-8');
-  } catch (_err) {
-    logger.info('No initial manifest found, will be generated on first build');
-  }
-
+  // Create Hono application instance
   const app = new Hono();
+  // Apply security headers and CSRF protection globally
   app.use(...securityMiddleware());
 
-  // Create Rsbuild DevServer instance
+  // Create Rsbuild DevServer instance (handles HMR, asset serving)
   const server = await rsbuild.createDevServer();
 
-  // register routes
+  // Register API routes before static assets
   apiRoutes(app);
 
-  // Wrap Rsbuild Connect middlewares for Hono
+  // Bridge Rsbuild's Connect middleware to Hono's request pipeline
   app.use(
     '*',
     createMiddleware(async (c: Context, next: Next) => {
       return new Promise<void>((resolve) => {
+        // Route request through Rsbuild's middleware (static files, HMR)
         server.middlewares(c.env.incoming, c.env.outgoing, () => {
           resolve(next());
         });
@@ -98,10 +52,13 @@ export async function startDevServer() {
     }),
   );
 
-  const renderHandler = serverRender(server);
+  // Create SSR renderer using shared server renderer utility
+  const renderHandler = createDevRenderer(server, templateHtml);
 
+  // Handle all GET requests with SSR fallback to CSR
   app.get('*', async (c: Context, next: Next) => {
     try {
+      // Attempt server-side rendering
       return await renderHandler(c);
     } catch (err: unknown) {
       logger.error('SSR render error, downgrade to CSR...');
@@ -112,7 +69,7 @@ export async function startDevServer() {
     }
   });
 
-  // Start the Node server
+  // Start the Node server with Hono's fetch handler
   const httpServer = serve(
     {
       fetch: app.fetch,
@@ -123,6 +80,7 @@ export async function startDevServer() {
     },
   );
 
+  // Enable Hot Module Replacement via WebSocket
   server.connectWebSocket({ server: httpServer as unknown as Server });
 
   return {
