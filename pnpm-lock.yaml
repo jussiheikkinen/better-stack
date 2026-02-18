@@ -8,12 +8,18 @@ importers:
 
   .:
     dependencies:
+      '@hono/node-server':
+        specifier: ^1.19.9
+        version: 1.19.9(hono@4.11.9)
       better-auth:
         specifier: ^1.4.18
         version: 1.4.18(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
       dotenv:
         specifier: ^17.3.1
         version: 17.3.1
+      hono:
+        specifier: ^4.11.9
+        version: 4.11.9
       react:
         specifier: ^19.2.3
         version: 19.2.4
@@ -30,9 +36,6 @@ importers:
       '@biomejs/biome':
         specifier: 2.3.8
         version: 2.3.8
-      '@hono/node-server':
-        specifier: ^1.19.9
-        version: 1.19.9(hono@4.11.9)
       '@rsbuild/core':
         specifier: ^1.7.1
         version: 1.7.3
@@ -69,9 +72,6 @@ importers:
       happy-dom:
         specifier: ^20.0.11
         version: 20.6.1
-      hono:
-        specifier: ^4.11.9
-        version: 4.11.9
       lefthook:
         specifier: ^2.1.1
         version: 2.1.1
