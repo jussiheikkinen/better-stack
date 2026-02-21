@@ -12,6 +12,11 @@ Better Stack provides a modern alternative to Next.js with:
 
 ## Setup
 
+```bash
+# Syntax: pnpm dlx degit <user>/<repo> <target-folder>
+pnpm dlx degit jussiheikkinen/better-stack app-shell
+```
+
 Install the dependencies:
 
 ```bash
